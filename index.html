@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BIGG BOSS FIGHT : TEKKEN 8 PRO EDITION</title>
+  <meta name="description" content="Realistic 3D Tekken-style fighting game featuring Bigg Boss fighters, AI face & combat suit studio, editable fighter names, and OP/Rockstar archetypes.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+  <!-- Hidden File Input for Custom Real Face Upload -->
+  <input type="file" id="real-face-input" accept="image/*" style="display:none;">
+
+  <div id="game-container">
+    <!-- ======================================================================
+         1. RETHOUGHT CHARACTER SELECT SCREEN
+         ====================================================================== -->
+    <div id="select-screen">
+      <!-- Header Bar -->
+      <div class="select-header">
+        <div class="brand-title">
+          <svg class="eye-logo" viewBox="0 0 100 100" fill="none">
+            <path d="M10 50 Q50 15 90 50 Q50 85 10 50 Z" stroke="#ffcc00" stroke-width="6" fill="rgba(255,204,0,0.12)"/>
+            <circle cx="50" cy="50" r="18" fill="#00e5ff" stroke="#fff" stroke-width="3"/>
+            <circle cx="50" cy="50" r="8" fill="#ff2222"/>
+          </svg>
+          <h1>BIGG BOSS FIGHT : TEKKEN PRO</h1>
+        </div>
+
+        <div class="header-controls">
+          <!-- Suit Archetype Mode Switcher -->
+          <div class="suit-toggle-group">
+            <span style="font-size:11px;font-weight:900;color:var(--gold);">SUIT STYLE:</span>
+            <button class="mode-pill ai-active" id="btn-suit-ai" onclick="gameEngine.toggleSuitMode('ai')">🤖 AI Tekken 8 Suits</button>
+            <button class="mode-pill" id="btn-suit-classic" onclick="gameEngine.toggleSuitMode('classic')">📸 Classic Photos</button>
+          </div>
+
+          <!-- Controls & Layout -->
+          <button class="mode-pill" id="select-phone-mode-btn" onclick="gameEngine.setControlMode('phone')">📱 Phone</button>
+          <button class="mode-pill" id="select-pc-mode-btn" onclick="gameEngine.setControlMode('pc')">💻 PC</button>
+          <button class="mode-pill" onclick="gameEngine.openCustomizer()" style="border-color:var(--gold);color:var(--gold);">⚙️ Controls</button>
+          <button class="mode-pill" onclick="gameEngine.toggleFullScreen()">⛶ Fullscreen</button>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           VERSUS PREVIEW WITH DIRECT INLINE NAME & TITLE EDITING
+           ====================================================================== -->
+      <div class="versus-showcase">
+        <!-- Player 1 Slot Card -->
+        <div class="fighter-slot-card p1">
+          <img id="p1-avatar-img" class="slot-avatar" src="" alt="Player 1">
+          <div class="slot-meta">
+            <div class="slot-tag-row">
+              <h4>PLAYER 1 (YOU)</h4>
+              <span style="font-size:10px;color:var(--cyan);font-weight:bold;">✏️ Tap to Rename</span>
+            </div>
+            <div class="name-edit-wrap">
+              <input type="text" class="editable-name-input" id="p1-name-input" value="Baseer Ali"
+                     title="Click to change Player 1 name"
+                     oninput="gameEngine.onEditPlayerName('P1', 'name', this.value)"
+                     placeholder="Player 1 Name">
+            </div>
+            <input type="text" class="editable-sub-input" id="p1-sub-input" value="Braid Hustler • BB S20"
+                   title="Click to change Player 1 title"
+                   oninput="gameEngine.onEditPlayerName('P1', 'title', this.value)"
+                   placeholder="Player 1 Title">
+            <span class="type-pill type-op" id="p1-voice-badge">Voice: "OP!"</span>
+          </div>
+        </div>
+
+        <!-- Center Flaming VS Emblem -->
+        <div class="vs-emblem">VS</div>
+
+        <!-- CPU Opponent Slot Card -->
+        <div class="fighter-slot-card cpu">
+          <img id="cpu-avatar-img" class="slot-avatar" src="" alt="CPU">
+          <div class="slot-meta">
+            <div class="slot-tag-row">
+              <span style="font-size:10px;color:var(--red);font-weight:bold;">✏️ Tap to Rename</span>
+              <h4>CPU OPPONENT</h4>
+            </div>
+            <div class="name-edit-wrap">
+              <input type="text" class="editable-name-input" id="cpu-name-input" value="Qazi Bohemian"
+                     title="Click to change CPU name"
+                     oninput="gameEngine.onEditPlayerName('CPU', 'name', this.value)"
+                     placeholder="CPU Name">
+            </div>
+            <input type="text" class="editable-sub-input" id="cpu-sub-input" value="Pink Robe • Mystic Rockstar"
+                   title="Click to change CPU title"
+                   oninput="gameEngine.onEditPlayerName('CPU', 'title', this.value)"
+                   placeholder="CPU Title">
+            <span class="type-pill type-rockstar" id="cpu-voice-badge">Voice: "ROCKSTAR!"</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================================
+           ROSTER GRID BAR & FIGHTER CARDS
+           ====================================================================== -->
+      <div class="roster-bar">
+        <div class="roster-section-title">
+          <span>⚔️ CHOOSE YOUR FIGHTERS • CLICK "✨ AI FACE &amp; SUIT FIT" TO CUSTOMIZE ACCURACY</span>
+        </div>
+      </div>
+      <div class="roster-grid" id="roster-grid"></div>
+
+      <!-- Bottom Actions Bar -->
+      <div class="select-actions">
+        <button class="btn-sub" onclick="gameEngine.togglePickTarget()">
+          Choosing Target: <span id="pick-mode-text" style="color:#00e5ff;font-weight:900;">PLAYER 1</span> (Tap to Switch)
+        </button>
+        <button class="btn-fight" onclick="gameEngine.startNewMatch()">
+          🔥 ENTER ARENA &amp; FIGHT!
+        </button>
+        <button class="btn-sub" onclick="gameEngine.testSelectedVoices()">
+          🔊 Test Signature Voices
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         2. IN-GAME COMBAT HUD
+         ====================================================================== -->
+    <div id="hud-overlay">
+      <div class="top-hud-bar">
+        <!-- P1 Health & Avatar -->
+        <div class="fighter-hud-box p1">
+          <img id="hud-p1-avatar" class="hud-avatar" src="" alt="P1">
+          <div class="bar-stack">
+            <div class="fighter-name-line">
+              <span id="hud-p1-name" style="color:#fff;">BASEER ALI</span>
+              <div class="rounds-won-dots">
+                <div class="round-dot" id="p1-dot-1"></div>
+                <div class="round-dot" id="p1-dot-2"></div>
+              </div>
+              <span class="voice-tag" id="hud-p1-voice">"OP!"</span>
+            </div>
+            <div class="health-bar-frame p1">
+              <div class="ghost-health-bar" id="p1-ghost-bar" style="width:100%;"></div>
+              <div class="real-health-bar" id="p1-real-bar" style="width:100%;"></div>
+              <span class="health-text" id="p1-hp-text">160 / 160 HP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Round Timer -->
+        <div class="center-hud-timer">
+          <div class="timer-box">
+            <div class="timer-digits" id="timer-digits">60</div>
+          </div>
+          <div class="round-indicator" id="round-indicator">ROUND 1</div>
+        </div>
+
+        <!-- CPU Health & Avatar -->
+        <div class="fighter-hud-box cpu">
+          <img id="hud-cpu-avatar" class="hud-avatar" src="" alt="CPU">
+          <div class="bar-stack">
+            <div class="fighter-name-line">
+              <span class="voice-tag" id="hud-cpu-voice">"ROCKSTAR!"</span>
+              <div class="rounds-won-dots">
+                <div class="round-dot" id="cpu-dot-1"></div>
+                <div class="round-dot" id="cpu-dot-2"></div>
+              </div>
+              <span id="hud-cpu-name" style="color:#fff;">QAZI BOHEMIAN (CPU)</span>
+            </div>
+            <div class="health-bar-frame cpu">
+              <div class="ghost-health-bar" id="cpu-ghost-bar" style="width:100%;"></div>
+              <div class="real-health-bar" id="cpu-real-bar" style="width:100%;"></div>
+              <span class="health-text" id="cpu-hp-text">160 / 160 HP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick In-Game Action Bar -->
+    <div id="top-action-bar">
+      <button class="mini-btn" onclick="gameEngine.backToSelect()">⬅ Select Fighters</button>
+      <button class="mini-btn" id="hud-phone-btn" onclick="gameEngine.setControlMode('phone')">📱 Phone</button>
+      <button class="mini-btn" id="hud-pc-btn" onclick="gameEngine.setControlMode('pc')">💻 PC</button>
+      <button class="mini-btn" onclick="gameEngine.openCustomizer()">⚙️ Controls</button>
+      <button class="mini-btn" onclick="gameEngine.startNewMatch()">🔄 Restart</button>
+    </div>
+
+    <!-- MAIN FIGHT STAGE CANVAS -->
+    <canvas id="fight-canvas" width="1080" height="640"></canvas>
+
+    <!-- ======================================================================
+         3. COMPUTER CONTROLS HUD (BOTTOM BAR)
+         ====================================================================== -->
+    <div id="pc-controls-hud">
+      <div class="pc-group">
+        <button class="pc-btn" data-action="left">◀ Left<span id="lbl-left">[A]</span></button>
+        <button class="pc-btn" data-action="up">▲ Jump<span id="lbl-up">[W]</span></button>
+        <button class="pc-btn" data-action="down">▼ Duck<span id="lbl-down">[S]</span></button>
+        <button class="pc-btn" data-action="right">▶ Right<span id="lbl-right">[D]</span></button>
+        <button class="pc-btn" data-action="block">🛡 Block<span id="lbl-block">[Space]</span></button>
+      </div>
+
+      <div class="pc-group">
+        <button class="pc-btn" data-atk="LP">🥊 Jab<span id="lbl-LP">[U]</span></button>
+        <button class="pc-btn" data-atk="RP">⚡ GodFist<span id="lbl-RP">[I]</span></button>
+        <button class="pc-btn" data-atk="LK">🌪 LowSweep<span id="lbl-LK">[J]</span></button>
+        <button class="pc-btn" data-atk="RK">🌀 Roundhouse<span id="lbl-RK">[K]</span></button>
+        <button class="pc-btn" data-atk="FLY">🦅 FlyKick<span id="lbl-FLY">[H]</span></button>
+        <button class="pc-btn" data-atk="THROW">🤼 Throw<span id="lbl-THROW">[T]</span></button>
+        <button class="pc-btn blade-btn" data-atk="SWORD">🗡️ Blade<span id="lbl-SWORD">[E]</span></button>
+        <button class="pc-btn rage" data-atk="SP">🔥 10-Hit Rage<span id="lbl-SP">[O]</span></button>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         4. PHONE CONTROLS HUD (TOUCH ARCADE PAD)
+         ====================================================================== -->
+    <div id="phone-controls-hud">
+      <div class="phone-side" id="phone-left-zone">
+        <div class="mobile-block-btn" data-action="block">🛡 HOLD GUARD</div>
+        <div class="dpad-cross" id="mobile-dpad">
+          <div class="dpad-btn dpad-up" data-action="up">▲<small>JUMP</small></div>
+          <div class="dpad-btn dpad-down" data-action="down">▼<small>CROUCH</small></div>
+          <div class="dpad-btn dpad-left" data-action="left">◀<small>LEFT</small></div>
+          <div class="dpad-btn dpad-right" data-action="right">▶<small>RIGHT</small></div>
+        </div>
+      </div>
+
+      <div class="phone-side" id="phone-right-zone">
+        <div class="mobile-combo-btn" id="mobile-combo-macro">⚡ 4-HIT COMBO</div>
+        <div class="mobile-rage-btn" data-atk="SP">🔥 10-HIT RAGE</div>
+        <div class="arcade-diamond">
+          <div class="limb-btn limb-lp" data-atk="LP">LP<small>FLASH JAB</small></div>
+          <div class="limb-btn limb-rp" data-atk="RP">RP<small>GOD FIST</small></div>
+          <div class="limb-btn limb-lk" data-atk="LK">LK<small>LOW SWEEP</small></div>
+          <div class="limb-btn limb-rk" data-atk="RK">RK<small>TORNADO</small></div>
+          <div class="limb-btn limb-sword" data-atk="SWORD">🗡️<small>BLADE</small></div>
+          <div class="limb-btn limb-fly" data-atk="FLY">🦅<small>FLY STRIKE</small></div>
+          <div class="limb-btn limb-throw" data-atk="THROW">🤼<small>SLAM</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         5. TEKKEN 8 VICTORY SCREEN
+         ====================================================================== -->
+    <div id="victory-screen">
+      <div class="vic-card">
+        <img id="vic-winner-portrait" class="vic-winner-portrait" src="" alt="Winner">
+        <div class="vic-rank" id="vic-rank-title">🏆 PERFECT VICTORY!</div>
+        <div class="vic-winner-name" id="vic-winner-name">BASEER ALI WINS!</div>
+        <div class="vic-quote-badge" id="vic-voice-quote">Signature Callout: "OP!"</div>
+
+        <div class="vic-stats-box">
+          <div class="vic-stat-line">
+            <span>Remaining Life Value:</span>
+            <strong id="vic-life-text">160 / 160 HP (100% REMAINING)</strong>
+          </div>
+          <div class="vic-life-wrap">
+            <div class="vic-life-fill" id="vic-life-bar"></div>
+          </div>
+          <div class="vic-stat-line" style="margin-top:10px;">
+            <span>Life Stolen From Opponent:</span>
+            <strong id="vic-stolen-text" style="color:#00ff88;">+84 HP Healed</strong>
+          </div>
+          <div class="vic-stat-line">
+            <span>Match Score (Tekken 8 Evaluation):</span>
+            <strong id="vic-score-text">16,400 PTS</strong>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn-fight" style="font-size:16px;padding:10px 24px;" onclick="gameEngine.startNewMatch()">🔄 Play Again (Rematch)</button>
+          <button class="btn-sub" onclick="gameEngine.backToSelect()">👥 Choose New Fighters</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         6. AI CHARACTER & FACE FITTING LAB MODAL
+         ====================================================================== -->
+    <div id="ai-studio-modal">
+      <div class="studio-card">
+        <div class="studio-header">
+          <h3>✨ AI CHARACTER &amp; FACE FITTING STUDIO</h3>
+          <button class="mini-btn" onclick="gameEngine.closeAIStudio()">✖ Close</button>
+        </div>
+
+        <div class="studio-preview-row">
+          <div class="studio-preview-box">
+            <img id="studio-preview-img" src="" alt="Preview">
+          </div>
+          <div class="studio-controls-grid">
+            <div style="color:var(--gold);font-weight:900;font-size:15px;" id="studio-char-name">Character Name</div>
+
+            <div class="studio-row">
+              <span>Fighter Name:</span>
+              <input type="text" id="studio-name-input" class="editable-name-input" style="font-size:14px;max-width:200px;">
+            </div>
+
+            <div class="studio-row">
+              <span>Fighter Title:</span>
+              <input type="text" id="studio-title-input" class="editable-name-input" style="font-size:12px;max-width:200px;">
+            </div>
+
+            <div class="studio-row">
+              <span>Face Size (Zoom): <strong id="studio-scale-val" style="color:var(--cyan);">100%</strong></span>
+              <input type="range" id="studio-scale-slider" class="studio-slider" min="0.8" max="1.3" step="0.02" value="1.0">
+            </div>
+
+            <div class="studio-row">
+              <span>Vertical Fit Offset: <strong id="studio-offy-val" style="color:var(--cyan);">0px</strong></span>
+              <input type="range" id="studio-offy-slider" class="studio-slider" min="-15" max="15" step="1" value="0">
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px;">
+          <button class="btn-sub" onclick="gameEngine.closeAIStudio()">Cancel</button>
+          <button class="btn-fight" style="font-size:14px;padding:8px 24px;" onclick="gameEngine.applyStudioSettings()">💾 Save &amp; Apply to Fighter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         7. CONTROL CUSTOMIZER MODAL
+         ====================================================================== -->
+    <div id="customizer-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>⚙️ CONTROL CUSTOMIZER (PHONE &amp; COMPUTER)</h3>
+          <button class="mini-btn" onclick="gameEngine.closeCustomizer()">✖ Close</button>
+        </div>
+
+        <div class="setting-row">
+          <span>Active Control Layout:</span>
+          <div style="display:flex;gap:6px;">
+            <button class="mode-pill" id="modal-phone-btn" onclick="gameEngine.setControlMode('phone')">📱 Phone Touch Pad</button>
+            <button class="mode-pill" id="modal-pc-btn" onclick="gameEngine.setControlMode('pc')">💻 Computer Bar</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <span>Phone Pad Size:</span>
+          <input type="range" id="pad-size-slider" min="0.75" max="1.3" step="0.05" value="1">
+        </div>
+
+        <div class="setting-row">
+          <span>Controls Opacity:</span>
+          <input type="range" id="pad-opacity-slider" min="0.4" max="1.0" step="0.05" value="0.94">
+        </div>
+
+        <div class="setting-row">
+          <span>Phone Hand Orientation:</span>
+          <button class="keybind-btn" id="swap-sides-btn" onclick="gameEngine.toggleSwapSides()">Standard (D-Pad Left / Attacks Right)</button>
+        </div>
+
+        <div style="margin-top:14px;">
+          <strong style="font-size:13px;color:var(--cyan);">💻 COMPUTER KEYBOARD BINDINGS (Click any key to rebind):</strong>
+          <div class="keybind-grid" id="keybind-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets.js"></script>
+  <script src="audio.js"></script>
+  <script src="fighters.js"></script>
+  <script src="arena.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
